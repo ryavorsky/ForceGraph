@@ -1,11 +1,12 @@
 ﻿Gr = "4:1-2,2-3,3-1,1-4";
-Height = 260;
-Width = 400;
-Repulsion = 70;
-Attraction = 20;
 var step = 0;
 var todo = [];
 
+function Start(){
+	BuildSvgGraph(1);
+	BuildSvgGraph(2);
+	Move();
+}
 
 function Move()
 {
@@ -31,10 +32,10 @@ function RedrawGraphs()
 
 function BuildSvgGraph(id)
 {
-	spec_id = "graph_spec" + String(id);
 	svg_id = "svg" + String(id);
 	
-	graph_spec = document.getElementById(spec_id).innerHTML;
+	graph_spec = graph_specs[id-1];
+	
 	svg_element = document.getElementById(svg_id);
 
 	svg_graph = new SvgGraph(svg_element, graph_spec);
@@ -75,7 +76,6 @@ function SvgGraph(svg_element, spec)
 	//this.g.Switch3D();
 	//this.g.SwitchPhysics();
 	
-
 }
 
 ChangeLabels = function(svg_graph) 
