@@ -1,28 +1,57 @@
 ﻿Gr = "4:1-2,2-3,3-1,1-4";
 Height = 260;
+Width = 400;
 Repulsion = 70;
 Attraction = 20;
 var step = 0;
 var todo = [];
 
+
 function Move()
 {
-	setTimeout(Move, 2000);
-	alert('Move: '+String(step++));
-	alert(todo);
-	for (var i = 0; i < todo.length; i++) {
-		alert(todo[i].svg.id);
-	}
+	setTimeout(Move, 50);
+	RedrawGraphs();
+	if (step == 270){
+		for (var i = 0; i < todo.length; i++) {	
+			//todo[i].g.physics = false; 
+			//todo[i].g.is3D = true;
+		};
+	};
+	step++;
 };
 
-function SvgGraph(id)
+function RedrawGraphs()
 {
-	SvgGraph.main = this;
-	todo.push(this);
+	for (var i = 0; i < todo.length; i++) {
+		todo[i].g.Iterate();
+		Redraw(todo[i]);
+	}
+}
 
-	this.svg = document.getElementById(id);
+
+function BuildSvgGraph(id)
+{
+	spec_id = "graph_spec" + String(id);
+	svg_id = "svg" + String(id);
 	
-	var svg = this.svg
+	graph_spec = document.getElementById(spec_id).innerHTML;
+	svg_element = document.getElementById(svg_id);
+
+	svg_graph = new SvgGraph(svg_element, graph_spec);
+	RebuildGraph(svg_graph);
+
+	todo.push(svg_graph);	
+	n = todo.length;
+
+}
+
+function SvgGraph(svg_element, spec)
+{
+
+	this.spec = spec;
+	this.svg = svg_element;
+	
+	var svg = this.svg;
 	
 	this.c3d = { camz : 900, ang:0, d:0.015 };
 	
@@ -30,8 +59,8 @@ function SvgGraph(id)
 	this.lines = [];
 	this.labls = [];
 	
-	this.w = window.innerWidth-20;
-	this.h = Height;
+	this.w = Width-20;
+	this.h = Height-20;
 	this.hw= this.w/2;
 	this.hh= this.h/2;
 	this.labels = true;
@@ -41,13 +70,12 @@ function SvgGraph(id)
 	this.g.attraction = 0.001*Attraction;
 	this.g.stable = false;
 	
-	this.g.Switch3D();
-	this.g.SwitchPhysics();
+	this.g.physics = true;
+	this.g.is3D = true;
+	//this.g.Switch3D();
+	//this.g.SwitchPhysics();
 	
-	SvgGraph.rebuild();
-	alert("Call");
-	this.timeredraw();
-	
+
 }
 
 ChangeLabels = function(svg_graph) 
@@ -63,9 +91,10 @@ MinColoring = function(svg_graph)
 		svg_graph.circs[i].setAttribute("fill", colors[svg_graph.g.vcolors[i]%colors.length]);
 }
 
-RebuildGraph = function(svg_graph, graph_spec)
+function RebuildGraph(svg_graph)
 {
-	svg_graph.g.MakeGraph(graph_spec);
+
+	svg_graph.g.MakeGraph(svg_graph.spec);
 	
 	var svg = svg_graph.svg;
 	
@@ -86,13 +115,17 @@ RebuildGraph = function(svg_graph, graph_spec)
 	for(i=0; i<svg_graph.g.graph.n; i++)
 	{
 		var c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-		c.setAttribute("fill", "#06E313");
+		if(i==0){
+			c.setAttribute("fill", "#FFFF00");
+		}else{
+			c.setAttribute("fill", "#FFFFFF");
+		};	
 		c.setAttribute("stroke", "#000000");
 		svg.appendChild(c);
 		svg_graph.circs.push(c);
 		
 		var t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-		t.setAttribute("fill", "#fff");
+		t.setAttribute("fill", "#000000");
 		t.setAttribute("font-size", "14");
 		t.setAttribute("style",  "pointer-events:none;");
 		t.textContent = i+1;
@@ -101,9 +134,9 @@ RebuildGraph = function(svg_graph, graph_spec)
 	}
 	
 	Redraw(svg_graph);
-}
+};
 
-Redraw = function(svg_graph)
+function Redraw(svg_graph)
 {
 	//if(g.is3D) g.vertices.sort(sorter);
 	
@@ -127,7 +160,7 @@ Redraw = function(svg_graph)
 		v.px = c3d.camz*nx/(c3d.camz - nz);
 		v.py = c3d.camz*ny/(c3d.camz - nz);
 		v.pz = nz;
-	}
+	};
 	
 	var hw = svg_graph.hw, hh = svg_graph.hh;
 
@@ -140,7 +173,7 @@ Redraw = function(svg_graph)
 		svg_graph.lines[i].setAttribute("y1", u.py + hh);
 		svg_graph.lines[i].setAttribute("x2", v.px + hw);
 		svg_graph.lines[i].setAttribute("y2", v.py + hh);
-	}
+	};
 	
 	var iw, kw;
 	for(var i=0; i<g.graph.n; i++)
@@ -155,7 +188,7 @@ Redraw = function(svg_graph)
 		svg_graph.labls[i].setAttribute("x", hw+v.px-(i>8?10:5));
 		svg_graph.labls[i].setAttribute("y", hh+v.py+6);
 	}
-}
+};
 
 
 function getEl(s)
