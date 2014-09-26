@@ -1,5 +1,4 @@
-﻿Gr = "4:1-2,2-3,3-1,1-4";
-var step = 0;
+﻿var step = 0;
 var todo = [];
 
 function Start(){
@@ -12,13 +11,32 @@ function Move()
 {
 	setTimeout(Move, 50);
 	RedrawGraphs();
-	if (step == 270){
-		for (var i = 0; i < todo.length; i++) {	
-			//todo[i].g.physics = false; 
-			//todo[i].g.is3D = true;
-		};
-	};
 	step++;
+};
+
+function MouseProc(e){
+
+	id = e.currentTarget.id[3];
+	svg_graph=todo[id-1];
+
+	
+	var rect = svg_graph.svg.getBoundingClientRect();
+
+	Alert(e.type + " " + String(rect.top) + " "  + String(rect.left));
+	if (e.type == "mousedown" || e.type == "touchstart"){
+		svg_graph.g.SetDragged(mouseX(e)-svg_graph.hw, mouseY(e)-svg_graph.hh, 30);
+		//Alert(e.type + " " +e.currentTarget.id[3] +" "+e.target);
+	};
+	if (e.type == "mousemove" || e.type == "touchmove"){
+		svg_graph.g.MoveDragged	(mouseX(e)-svg_graph.hw, mouseY(e)-svg_graph.hh);
+	};
+	if (e.type == "mouseup" || e.type == "touchend"){
+		svg_graph.g.StopDragging();
+		//alert(e.type);
+		};
+	if (e.type == "touchmove"){
+		e.preventDefault();
+		};
 };
 
 function RedrawGraphs()
@@ -35,10 +53,15 @@ function BuildSvgGraph(id)
 	svg_id = "svg" + String(id);
 	
 	graph_spec = graph_specs[id-1];
+	nodes_labels = graph_nodes_labels[id-1];
+	nodes_size = graph_nodes_size[id-1];
 	
 	svg_element = document.getElementById(svg_id);
 
-	svg_graph = new SvgGraph(svg_element, graph_spec);
+	svg_graph = new SvgGraph(svg_element, graph_spec, nodes_labels, nodes_size);
+	if (id == 1){
+		svg_graph.g.is3D = false;
+	};
 	RebuildGraph(svg_graph);
 
 	todo.push(svg_graph);	
@@ -46,19 +69,30 @@ function BuildSvgGraph(id)
 
 }
 
-function SvgGraph(svg_element, spec)
+
+function SvgGraph(svg_element, spec, nodes_labels, nodes_size)
 {
 
 	this.spec = spec;
 	this.svg = svg_element;
 	
 	var svg = this.svg;
+	svg.addEventListener("mousedown", MouseProc, false);
+	svg.addEventListener("mousemove", MouseProc, false);
+	svg.addEventListener("mouseup", MouseProc, false);
+	
+	svg.addEventListener("touchmove",MouseProc, false);	
+	svg.addEventListener("touchstart",MouseProc, false);
+	svg.addEventListener("touchend",MouseProc, false);
+	svg.addEventListener("touchmove",MouseProc, false);
 	
 	this.c3d = { camz : 900, ang:0, d:0.015 };
 	
 	this.circs = [];
 	this.lines = [];
 	this.labls = [];
+	this.labels_text = nodes_labels;
+	this.nodes_size = nodes_size;
 	
 	this.w = Width-20;
 	this.h = Height-20;
@@ -73,8 +107,6 @@ function SvgGraph(svg_element, spec)
 	
 	this.g.physics = true;
 	this.g.is3D = true;
-	//this.g.Switch3D();
-	//this.g.SwitchPhysics();
 	
 }
 
@@ -121,6 +153,7 @@ function RebuildGraph(svg_graph)
 			c.setAttribute("fill", "#FFFFFF");
 		};	
 		c.setAttribute("stroke", "#000000");
+		c.setAttribute("style", "cursor:move;");
 		svg.appendChild(c);
 		svg_graph.circs.push(c);
 		
@@ -128,7 +161,7 @@ function RebuildGraph(svg_graph)
 		t.setAttribute("fill", "#000000");
 		t.setAttribute("font-size", "14");
 		t.setAttribute("style",  "pointer-events:none;");
-		t.textContent = i+1;
+		t.textContent = svg_graph.labels_text[i];
 		svg.appendChild(t);
 		svg_graph.labls.push(t);
 	}
@@ -180,13 +213,17 @@ function Redraw(svg_graph)
 	{
 		var v = g.vertices[i];
 		iw = c3d.camz*13/(c3d.camz-v.pz);
+		cx_upd = hw+v.px;
+		cy_upd = hh+v.py;
+		if (cx_upd < 5){cx_upd = 5};
+		if (cy_upd < 5){cy_upd = 5};
+		svg_graph.circs[i].setAttribute("cx", cx_upd);
+		svg_graph.circs[i].setAttribute("cy", cy_upd);
+		r_upd = Math.max(0,iw)*svg_graph.nodes_size[i];
+		svg_graph.circs[i].setAttribute("r", r_upd);
 		
-		svg_graph.circs[i].setAttribute("cx", hw+v.px);
-		svg_graph.circs[i].setAttribute("cy", hh+v.py);
-		svg_graph.circs[i].setAttribute("r", Math.max(0,iw));
-		
-		svg_graph.labls[i].setAttribute("x", hw+v.px-(i>8?10:5));
-		svg_graph.labls[i].setAttribute("y", hh+v.py+6);
+		svg_graph.labls[i].setAttribute("x", cx_upd-5);
+		svg_graph.labls[i].setAttribute("y", cy_upd+6);
 	}
 };
 
@@ -198,3 +235,39 @@ function getEl(s)
 
 
 function sorter(a,b){return a.z - b.z}
+
+function Alert(msg){
+	res = getEl("res");
+	res.innerHTML = "Result:" + msg;
+}
+
+function mouseX(e)
+{
+
+	id = e.currentTarget.id[3];
+	svg_graph=todo[id-1];
+	rect = svg_graph.svg.getBoundingClientRect();
+
+	var cx;
+	if(e.type == "touchstart" || e.type == "touchmove") {
+		cx = e.touches.item(0).clientX;
+	} else {
+		cx = e.clientX;
+	};
+	return (cx-rect.left);
+}
+function mouseY(e)
+{	
+	id = e.currentTarget.id[3];
+	svg_graph=todo[id-1];
+	rect = svg_graph.svg.getBoundingClientRect();
+
+	var cy;
+	if(e.type == "touchstart" || e.type == "touchmove")	{
+		cy = e.touches.item(0).clientY;
+	} else {
+		cy = e.clientY;
+	};
+	return (cy-rect.top); 
+}
+
