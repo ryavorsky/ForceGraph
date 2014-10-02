@@ -1,0 +1,67 @@
+﻿<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> 
+	<title>Svg graphs</title> 
+	<meta charset="utf-8"> 
+</head> 
+<body onload="Start();">
+<br/>hi<br/>hi<br/>hi<br/>hi<br/>hi<br/>hi<br/>hi 
+
+<svg version="1.1" 
+     xmlns="http://www.w3.org/2000/svg"
+     width="510px" height="210px" viewBox="0 0 510 210"
+     stroke="black" stroke-width="0.5px" 
+     onmousemove="moveEyes(evt)">
+
+<script>
+// <![CDATA[
+
+var svgNS = "http://www.w3.org/2000/svg";
+var xlinkNS = "http://www.w3.org/1999/xlink";
+
+function moveEyes(evt){   
+
+   // Get the mouse location:
+   var mousex = evt.clientX;
+   var mousey = evt.clientY;
+   
+   // Work out correct pupil position for left eye, and update:
+   var dx=mousex-105;
+   var dy=mousey-105;
+   var dist = Math.sqrt(dx*dx + dy*dy); 
+   if (dist > 70) {
+      dx = dx*70/dist;
+      dy = dy*70/dist;
+   }
+   var left=document.getElementById("LeftPupil");
+   left.setAttributeNS(null, "cx", dx+105);
+   left.setAttributeNS(null, "cy", dy+105);
+   
+   // Work out correct pupil position for right eye, and update:
+   var dx=mousex-405;
+   var dy=mousey-105;
+   var dist = Math.sqrt(dx*dx + dy*dy); 
+   if (dist > 70) {
+      dx = dx*70/dist;
+      dy = dy*70/dist;
+   }
+   var right=document.getElementById("RightPupil");
+   right.setAttributeNS(null, "cx", dx+405);
+   right.setAttributeNS(null, "cy", dy+105);
+}
+
+// ]]>
+</script>
+
+<circle r="100" cx="105" cy="105" stroke="black" stroke-width="10px" fill="white"/>
+<circle r="100" cx="405" cy="105" stroke="black" stroke-width="10px" fill="white"/>
+<circle id="LeftPupil" r="20" cx="105" cy="105" fill="black"/>
+<circle id="RightPupil" r="20" cx="405" cy="105" fill="black"/>
+
+</svg>    
+<div id="Graph1">
+Gg    
+</div>
+    <hr />
+</body>
+</html>
+
